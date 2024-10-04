@@ -205,19 +205,22 @@
         }
 
         function answer(questionId, response) {
-            questionHistory.push({ questionId, response });
             currentStep++;
             updateProgress();
 
             const question = questions[questionId];
             const selectedOption = question.options.find(option => option.label === response);
 
-            if (selectedOption.info) {
-                showInfo(selectedOption.info);
-            }
+            if (selectedOption) {
+                questionHistory.push({ questionId, response });
 
-            if (selectedOption.next) {
-                showNextQuestion(selectedOption.next, questions[selectedOption.next].text);
+                if (selectedOption.info) {
+                    showInfo(selectedOption.info);
+                }
+
+                if (selectedOption.next) {
+                    showNextQuestion(selectedOption.next, questions[selectedOption.next].text);
+                }
             }
 
             saveProgress();
@@ -253,7 +256,11 @@
                 updateProgress();
                 document.getElementById('questionContainer').innerHTML = '';
                 questionHistory.forEach(entry => {
-                    answer(entry.questionId, entry.response);
+                    const question = questions[entry.questionId];
+                    showNextQuestion(entry.questionId, question.text);
+                    if (entry.response) {
+                        answer(entry.questionId, entry.response);
+                    }
                 });
             }
         }
@@ -295,7 +302,11 @@
                 updateProgress();
                 document.getElementById('questionContainer').innerHTML = '';
                 questionHistory.forEach(entry => {
-                    answer(entry.questionId, entry.response);
+                    const question = questions[entry.questionId];
+                    showNextQuestion(entry.questionId, question.text);
+                    if (entry.response) {
+                        answer(entry.questionId, entry.response);
+                    }
                 });
             }
         }
