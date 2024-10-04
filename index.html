@@ -66,6 +66,26 @@
             border-radius: 3px;
             transition: width 0.5s ease-in-out;
         }
+        .checklist {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .faq {
+            background-color: #f1f5f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .faq h3 {
+            margin-top: 0;
+            cursor: pointer;
+        }
+        .faq-content {
+            display: none;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -85,12 +105,99 @@
                 <button onclick="answer('q1', 'no')">No</button>
             </div>
         </div>
+        <div class="checklist" id="checklist">
+            <h2>Checklist for IRB Submission</h2>
+            <ul>
+                <li>Complete required ethics training.</li>
+                <li>Prepare informed consent documents.</li>
+                <li>Develop a comprehensive protocol outlining your study.</li>
+                <li>Identify any risks to participants and mitigation strategies.</li>
+                <li>Ensure you have recruitment materials ready, if applicable.</li>
+                <li>Review all documents for accuracy and completeness.</li>
+            </ul>
+        </div>
+        <div class="faq" id="faqSection">
+            <h2>Advanced Guidance FAQ</h2>
+            <div class="faq-item">
+                <h3 onclick="toggleFaqContent('faq1')">What is considered minimal risk?</h3>
+                <div id="faq1" class="faq-content">
+                    <p>Minimal risk means that the probability and magnitude of harm or discomfort anticipated in the research are not greater than those ordinarily encountered in daily life or during routine physical or psychological tests.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <h3 onclick="toggleFaqContent('faq2')">When is a full IRB review required?</h3>
+                <div id="faq2" class="faq-content">
+                    <p>A full IRB review is required when your research involves vulnerable populations, poses more than minimal risk to participants, or includes sensitive topics that could potentially cause distress.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <h3 onclick="toggleFaqContent('faq3')">How do I modify an approved study?</h3>
+                <div id="faq3" class="faq-content">
+                    <p>To modify an approved study, you must submit a modification request to your IRB, detailing the proposed changes and justifying the reasons for those modifications.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         let currentStep = 1;
-        const totalSteps = 10; // Updated total steps
+        const totalSteps = 15; // Updated total steps
         const questionHistory = [];
+
+        const questions = {
+            q1: {
+                text: "Does your research involve human subjects?",
+                options: [
+                    { label: "Yes", next: "q2" },
+                    { label: "No", info: "Your research may not require IRB approval. However, please consult with your institution's IRB office for confirmation." }
+                ]
+            },
+            q2: {
+                text: "Does your research involve vulnerable populations?",
+                options: [
+                    { label: "Yes", next: "q3" },
+                    { label: "No", next: "q4" }
+                ]
+            },
+            q3: {
+                text: "What type of vulnerable population does your research involve?",
+                options: [
+                    { label: "Children", info: "Research involving children often requires full IRB review." },
+                    { label: "Prisoners", info: "Research involving prisoners requires special considerations and likely full IRB review." },
+                    { label: "Pregnant Women", info: "Research involving pregnant women may require additional safeguards." },
+                    { label: "Other", info: "Research involving other vulnerable populations often requires full IRB review." }
+                ],
+                next: "q4"
+            },
+            q4: {
+                text: "What is the potential risk level for participants?",
+                options: [
+                    { label: "Minimal Risk", info: "Your study may qualify for expedited review. Prepare your protocol focusing on how you'll maintain minimal risk.", next: "q5" },
+                    { label: "Greater than Minimal Risk", info: "Your study will likely require full IRB review. Prepare a comprehensive protocol detailing risk mitigation strategies.", next: "q5" }
+                ]
+            },
+            q5: {
+                text: "Have you completed the required ethics training for researchers?",
+                options: [
+                    { label: "Yes", next: "q6" },
+                    { label: "No", info: "Please complete the required ethics training before proceeding with your IRB application.", next: "q6" }
+                ]
+            },
+            q6: {
+                text: "Are you ready to submit your IRB application?",
+                options: [
+                    { label: "Yes", info: "Great! Submit your application through your institution's IRB system. Expect to receive feedback or approval in 4-6 weeks.", next: "q7" },
+                    { label: "No", info: "Take your time to prepare a thorough application. Consider consulting with colleagues or your advisor before submission." }
+                ]
+            },
+            q7: {
+                text: "Did you receive any requests for revisions from the IRB?",
+                options: [
+                    { label: "Yes", info: "Carefully address each point in the IRB's feedback. Be thorough in your responses and revise your protocol as necessary. Resubmit your revised application promptly." },
+                    { label: "No", info: "Congratulations! You can now proceed with your research as approved." }
+                ]
+            }
+        };
 
         function updateProgress() {
             const progressPercentage = (currentStep / totalSteps) * 100;
@@ -102,48 +209,31 @@
             currentStep++;
             updateProgress();
 
-            if (questionId === 'q1') {
-                if (response === 'yes') {
-                    showNextQuestion('q2', "2. Does your research involve vulnerable populations?");
-                } else {
-                    showInfo("Your research may not require IRB approval. However, please consult with your institution's IRB office for confirmation.");
-                }
-            } else if (questionId === 'q2') {
-                if (response === 'yes') {
-                    showNextQuestion('q3', "3. What type of vulnerable population does your research involve?");
-                } else {
-                    showNextQuestion('q4', "4. What is the potential risk level for participants?");
-                }
-            } else if (questionId === 'q3') {
-                showInfo("Research involving vulnerable populations often requires full IRB review. Please prepare a detailed protocol describing safeguards for protecting these participants.");
-                showNextQuestion('q4', "4. What is the potential risk level for participants?");
-            } else if (questionId === 'q4') {
-                if (response === 'minimal') {
-                    showInfo("Your study may qualify for expedited review. Prepare your protocol focusing on how you'll maintain minimal risk.");
-                } else {
-                    showInfo("Your study will likely require full IRB review. Prepare a comprehensive protocol detailing risk mitigation strategies.");
-                }
-                showNextQuestion('q5', "5. Have you completed the required ethics training for researchers?");
+            const question = questions[questionId];
+            const selectedOption = question.options.find(option => option.label === response);
+
+            if (selectedOption.info) {
+                showInfo(selectedOption.info);
             }
-            // Additional steps...
+
+            if (selectedOption.next) {
+                showNextQuestion(selectedOption.next, questions[selectedOption.next].text);
+            }
+
+            saveProgress();
         }
 
         function showNextQuestion(id, text) {
+            const question = questions[id];
+            let buttonsHTML = '';
+            question.options.forEach(option => {
+                buttonsHTML += `<button onclick="answer('${id}', '${option.label}')">${option.label}</button>`;
+            });
+
             document.getElementById('questionContainer').innerHTML += `
                 <div class="question" id="${id}">
                     <h2>${text}</h2>
-                    ${id === 'q3' ? `
-                        <button onclick="answer('${id}', 'children')">Children</button>
-                        <button onclick="answer('${id}', 'prisoners')">Prisoners</button>
-                        <button onclick="answer('${id}', 'pregnant')">Pregnant Women</button>
-                        <button onclick="answer('${id}', 'other')">Other</button>
-                    ` : id === 'q4' ? `
-                        <button onclick="answer('${id}', 'minimal')">Minimal Risk</button>
-                        <button onclick="answer('${id}', 'greater')">Greater than Minimal Risk</button>
-                    ` : `
-                        <button onclick="answer('${id}', 'yes')">Yes</button>
-                        <button onclick="answer('${id}', 'no')">No</button>
-                    `}
+                    ${buttonsHTML}
                 </div>
             `;
         }
@@ -174,12 +264,44 @@
             updateProgress();
             document.getElementById('questionContainer').innerHTML = `
                 <div class="question" id="q1">
-                    <h2>1. Does your research involve human subjects?</h2>
+                    <h2>${questions.q1.text}</h2>
                     <button onclick="answer('q1', 'yes')">Yes</button>
                     <button onclick="answer('q1', 'no')">No</button>
                 </div>
             `;
+            localStorage.removeItem('progress');
         }
+
+        function toggleFaqContent(faqId) {
+            const faqContent = document.getElementById(faqId);
+            faqContent.style.display = faqContent.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function saveProgress() {
+            const progressData = {
+                currentStep,
+                questionHistory
+            };
+            localStorage.setItem('progress', JSON.stringify(progressData));
+        }
+
+        function loadProgress() {
+            const savedProgress = localStorage.getItem('progress');
+            if (savedProgress) {
+                const progressData = JSON.parse(savedProgress);
+                currentStep = progressData.currentStep;
+                questionHistory.length = 0;
+                questionHistory.push(...progressData.questionHistory);
+                updateProgress();
+                document.getElementById('questionContainer').innerHTML = '';
+                questionHistory.forEach(entry => {
+                    answer(entry.questionId, entry.response);
+                });
+            }
+        }
+
+        // Load progress if available
+        loadProgress();
     </script>
 </body>
 </html>
