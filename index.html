@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRB Decision and Guidance Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #e9eef3;
+            color: #333;
+        }
+        .container {
+            background-color: #fdfdfd;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 20px auto;
+        }
+        h1 {
+            color: #2a5673;
+            border-bottom: 2px solid #2a5673;
+            padding-bottom: 10px;
+        }
+        .question, .info-section {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f1f5f9;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #2a5673;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1e4258;
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #d9dde3;
+            padding: 3px;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
+            margin-bottom: 15px;
+        }
+        .progress {
+            width: 0;
+            height: 20px;
+            background-color: #2a5673;
+            border-radius: 3px;
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IRB Decision and Guidance Tool for Behavioral Research</h1>
+        <div class="progress-bar">
+            <div id="progress" class="progress"></div>
+        </div>
+        <div class="navigation-buttons">
+            <button onclick="goBack()">Back</button>
+            <button onclick="goHome()">Home</button>
+        </div>
+        <div id="questionContainer">
+            <div class="question" id="q1">
+                <h2>1. Does your research involve human subjects?</h2>
+                <button onclick="answer('q1', 'yes')">Yes</button>
+                <button onclick="answer('q1', 'no')">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 10; // Updated total steps
+        const questionHistory = [];
+
+        function updateProgress() {
+            const progressPercentage = (currentStep / totalSteps) * 100;
+            document.getElementById('progress').style.width = progressPercentage + '%';
+        }
+
+        function answer(questionId, response) {
+            questionHistory.push({ questionId, response });
+            currentStep++;
+            updateProgress();
+
+            if (questionId === 'q1') {
+                if (response === 'yes') {
+                    showNextQuestion('q2', "2. Does your research involve vulnerable populations?");
+                } else {
+                    showInfo("Your research may not require IRB approval. However, please consult with your institution's IRB office for confirmation.");
+                }
+            } else if (questionId === 'q2') {
+                if (response === 'yes') {
+                    showNextQuestion('q3', "3. What type of vulnerable population does your research involve?");
+                } else {
+                    showNextQuestion('q4', "4. What is the potential risk level for participants?");
+                }
+            } else if (questionId === 'q3') {
+                showInfo("Research involving vulnerable populations often requires full IRB review. Please prepare a detailed protocol describing safeguards for protecting these participants.");
+                showNextQuestion('q4', "4. What is the potential risk level for participants?");
+            } else if (questionId === 'q4') {
+                if (response === 'minimal') {
+                    showInfo("Your study may qualify for expedited review. Prepare your protocol focusing on how you'll maintain minimal risk.");
+                } else {
+                    showInfo("Your study will likely require full IRB review. Prepare a comprehensive protocol detailing risk mitigation strategies.");
+                }
+                showNextQuestion('q5', "5. Have you completed the required ethics training for researchers?");
+            }
+            // Additional steps...
+        }
+
+        function showNextQuestion(id, text) {
+            document.getElementById('questionContainer').innerHTML += `
+                <div class="question" id="${id}">
+                    <h2>${text}</h2>
+                    ${id === 'q3' ? `
+                        <button onclick="answer('${id}', 'children')">Children</button>
+                        <button onclick="answer('${id}', 'prisoners')">Prisoners</button>
+                        <button onclick="answer('${id}', 'pregnant')">Pregnant Women</button>
+                        <button onclick="answer('${id}', 'other')">Other</button>
+                    ` : id === 'q4' ? `
+                        <button onclick="answer('${id}', 'minimal')">Minimal Risk</button>
+                        <button onclick="answer('${id}', 'greater')">Greater than Minimal Risk</button>
+                    ` : `
+                        <button onclick="answer('${id}', 'yes')">Yes</button>
+                        <button onclick="answer('${id}', 'no')">No</button>
+                    `}
+                </div>
+            `;
+        }
+
+        function showInfo(text) {
+            document.getElementById('questionContainer').innerHTML += `
+                <div class="info-section">
+                    <p>${text}</p>
+                </div>
+            `;
+        }
+
+        function goBack() {
+            if (questionHistory.length > 0) {
+                currentStep--;
+                questionHistory.pop();
+                updateProgress();
+                document.getElementById('questionContainer').innerHTML = '';
+                questionHistory.forEach(entry => {
+                    answer(entry.questionId, entry.response);
+                });
+            }
+        }
+
+        function goHome() {
+            currentStep = 1;
+            questionHistory.length = 0;
+            updateProgress();
+            document.getElementById('questionContainer').innerHTML = `
+                <div class="question" id="q1">
+                    <h2>1. Does your research involve human subjects?</h2>
+                    <button onclick="answer('q1', 'yes')">Yes</button>
+                    <button onclick="answer('q1', 'no')">No</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
